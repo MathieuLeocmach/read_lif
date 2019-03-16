@@ -1,6 +1,8 @@
 # read_lif
 
-Load image from lif files to `bumpy` arrays.
+Load image from lif files to `numpy` arrays.
+
+The code was originally written by Mathieu Leocmach in package [colloids](https://github.com/MathieuLeocmach/colloids)
 
 ## Install
 
