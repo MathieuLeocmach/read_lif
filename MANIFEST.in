@@ -1,5 +1,4 @@
 # Include the README
-include *.md
-
-# Include the license file
+include readme.md
 include LICENSE.txt
+prune test

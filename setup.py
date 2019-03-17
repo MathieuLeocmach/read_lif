@@ -1,13 +1,4 @@
-"""A setuptools based setup module.
-See:
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
-"""
-
-# Always prefer setuptools over distutils
 from setuptools import setup
-
-# To use a consistent encoding
 from codecs import open
 from os import path
 
@@ -22,14 +13,15 @@ with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
 
 setup(
     name='read_lif',
-    version='0.1.0',
+    version='0.2.0',
     description='A Python module for loading lif file as numpy array',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/yangyushi/read_lif',
     author='Yushi Yang',
     author_email='yangyushi1992@icloud.com',  # Optional
-    py_modules=["read_lif"],
+    packages=["read_lif"],
+    package_dir={'read_lif': 'read_lif'},
     install_requires=['numpy'],
     python_requires='>=2.5'
 )
