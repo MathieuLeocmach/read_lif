@@ -12,6 +12,8 @@ The code was originally written by Mathieu Leocmach in package [colloids](https:
 ## How to Use It
 
 ```python
+import read_lif
+
 reader = read_lif.Reader('lif_file.lif')
 series = reader.getSeries()
 chosen = series[0]  # choose first image in the lif file
