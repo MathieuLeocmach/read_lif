@@ -273,6 +273,11 @@ class SerieHeader:
         return self._dimensions
 
     def hasZ(self):
+        """
+        Method: Check if current serie includes Z stacking
+        
+        Return: Boolean value
+        """
         for d in self.getDimensions():
             if dimName[int(d.getAttribute("DimID"))] == "Z":
                 return True
@@ -341,9 +346,25 @@ class SerieHeader:
         return self._numberOfElements
 
     def getVoxelSize(self, dimension):
+        """
+        Method: Use getScannerSetting() to return the resolution
+        
+        arg:: dimension is an integer according to the dimName dictionnary {1: X, 2: Y, 3: Z}
+        
+        Return: Voxel size of specified axis (float)
+
+        """
         return float(self.getScannerSetting("dblVoxel%s" % dimName[dimension]))
 
     def getZXratio(self):
+        """
+        Method: Calculate for the current Serie the ratio between Vertical (Z) and Horizontal (X) image resolutions. Looks for the information either in
+                    - 'ScannerSettingRecord' (resolution)
+                    - or in 'DimensionDescription' (total size / pixel number)
+        
+        Return: Z/X resolution ratio (float). Return 1.0 if the current Serie has no Z-stack.
+               
+        """
         setting_records = self.root.getElementsByTagName('ScannerSettingRecord')
         dimension_descriptions = self.root.getElementsByTagName('DimensionDescription')
         if self.hasZ():
@@ -383,7 +404,14 @@ class SerieHeader:
         return self._duration
 
     def getTimeLapse(self):
-        """Get an estimate of the average time lapse between two frames in seconds"""
+        """
+        Method: Get an estimate of the average time lapse between two frames in seconds
+
+        Return: estimated Lag time in seconds (float)
+        
+        warning:: Note that this value is accessible directly via getScannerSetting('nDelayTime_ms')
+           
+        """
         if self.getNbFrames() == 1:
             return 0
         else:
@@ -442,6 +470,13 @@ class SerieHeader:
         return getattr(self, '_' + dim)
 
     def chooseChannel(self):
+        """
+        Method: Interactive selection of the channel for the current serie.
+        
+        Print the Serie name `chosen_serie.getName() and a list of all channels specifying: index, Color
+        Promt for selecting a channel index.
+        
+        """
         st = "Serie: %s\n" % self.getName()
         for i, c in enumerate(self.getChannels()):
             st += "(%i) %s\n" % (i, channelTag[int(c.getAttribute("ChannelTag"))])
@@ -490,11 +525,19 @@ class SerieHeader:
         return self._boxShape
 
     def getFrameShape(self):
-        """Shape of the frame (nD image) in C order, that is Z,Y,X"""
+        """
+        Method: Get the Shape of the frame (nD image) in C order, that is Z,Y,X 
+        
+        Return: list of integers of axis length in Z, Y, X order (reverse as in .getBoxShape())
+        """
         return self.getBoxShape()[::-1]
 
     def get2DShape(self):
-        """size of the two first spatial dimensions, in C order, e.g. Y,X"""
+        """
+        Method: Get the Shape of an image using the two first spatial dimensions, in C order, e.g. Y,X
+        
+        Return: list of integers of axis length
+        """
         return self.getBoxShape()[:2][::-1]
 
     def getNbPixelsPerFrame(self):
