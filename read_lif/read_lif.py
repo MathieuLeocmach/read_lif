@@ -564,7 +564,11 @@ class SerieHeader:
 
 
 def get_xml(lif_name):
-    """Extract the XML header from LIF file and save it"""
+    """
+    Function: Extract the XML header from LIF file and save it. Generated .xml file can be opened in a Web Browser
+    
+    Use to examine the global architecture and the keywords associated with usefull information, to use with getXXX() methods
+    """
     with open(lif_name, "rb") as f:
         memBlock, trash, testBlock = struct.unpack("iic", f.read(9))
         if memBlock != 112:
