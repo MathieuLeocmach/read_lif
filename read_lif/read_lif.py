@@ -29,8 +29,6 @@ import struct, io, re, sys
 import xml
 from xml.dom.minidom import parse
 import numpy as np
-from numpy.fft import rfft2, irfft2
-import numexpr
 import warnings
 
 dimName = {1: "X",
@@ -937,34 +935,3 @@ class Serie(SerieHeader):
                     dtype=np.ubyte,
                     count=self.getNbPixelsPerSlice()
                 ).reshape(self.get2DShape())
-
-
-def getNeighbourhood(point, image, radius=10):
-    box = np.floor([np.maximum(0, point - radius), np.minimum(image.shape, point + radius + 1)])
-    ngb = image[box[0, 0]:box[1, 0], box[0, 1]:box[1, 1], box[0, 2]:box[1, 2]]
-    center = point - box[0]
-    return ngb, center
-
-
-def getRadius(ngb, center, zratio=1, rmin=3, rmax=10, precision=0.1):
-    sqdist = [(np.arange(ngb.shape[d]) - center[d]) ** 2 for d in range(ngb.ndim)]
-    sqdist[-1] *= zratio ** 2
-    dist = np.empty_like(ngb)
-    for i, x in enumerate(sqdist[0]):
-        for j, y in enumerate(sqdist[1]):
-            for k, z in enumerate(sqdist[2]):
-                dist[i, j, k] = x + y + z
-    val = np.zeros(rmax / precision)
-    nbs = np.zeros(rmax / precision)
-    for l, (px, d) in enumerate(zip(ngb.ravel(), dist.ravel())):
-        if d < rmax ** 2:
-            i = int(np.sqrt(d) / precision)
-            nbs[i] += 1
-            val[i] += px
-    intensity = np.cumsum(val) / np.cumsum(nbs)
-    fi = np.fft.rfft(intensity)
-    return rmin + precision * np.argmin(
-        np.ediff1d(np.fft.irfft(
-            fi * np.exp(-np.arange(len(fi)) / 13.5))
-        )[rmin / precision:]
-    )
