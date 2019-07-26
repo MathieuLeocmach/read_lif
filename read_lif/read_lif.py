@@ -582,7 +582,15 @@ def get_xml(lif_name):
 
 
 class Reader(Header):
-    """Reads Leica LIF files"""
+    """
+    Reads Leica LIF files
+    
+    Methods: getSeries(), chooseSeries(), __init__(), __iter__(), __readMemoryBlockHeader()
+    
+    Semi-Private Attribute:: _series
+                 
+
+    """
 
     def __init__(self, lifFile, quick=True):
         # open file and find it's size
@@ -641,13 +649,24 @@ class Reader(Header):
         return memorysize
 
     def getSeries(self):
-        if not hasattr(self, '__series'):
-            self.__series = [
+        """
+        Method: Get the experimental Series from the raw .lif file
+        Semi-Private Attribute: _series
+        
+        Return: a List of class Serie objects
+        """
+        if not hasattr(self, '_series'):
+            self._series = [
                 Serie(s.root, self.f, self.offsets[i]) for i, s in enumerate(self.getSeriesHeaders())
             ]
-        return self.__series
+        return self._series
 
     def chooseSerie(self):
+        """
+        Method: use .chooseSerieIndex() inherited Header method to interactively choose a Serie using .getSeries()
+        
+        Return: the selected class Serie object
+        """
         return self.getSeries()[self.chooseSerieIndex()]
 
     def __iter__(self):
