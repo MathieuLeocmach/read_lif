@@ -330,6 +330,26 @@ class SerieHeader:
                     setattr(self, '_' + identifier, c.getAttribute("Variant"))
                     break
         return getattr(self, '_' + identifier)
+    
+    def getFilterSetting(self, objectName):
+        """
+        Method: Access to the value of one of the Experimental Condition elements under `FilterSettingRecord TagName`
+        Semi-private attribute `_"objectName"`
+        
+        arg:: objectName (string) as the name of the Object looked for.
+        
+              Refer to xml file for a list of relevant objectName: e.g. 'Scan Head' yields information about scanner
+        
+        return: Unlike identifier in getScannerSetting, a single objectname has multiple occurences, 
+                hence getFilterSetting returns a dictionnary of all {Attributes: Variant}, with values 'Variant' being strings 
+        """
+        if not hasattr(self, '_' + objectName):
+            obj = dict()
+            for c in self.root.getElementsByTagName("FilterSettingRecord"):
+                if c.getAttribute("ObjectName") == objectName:
+                    obj[c.getAttribute("Attribute")] = c.getAttribute("Variant")
+            setattr(self,  '_' + objectName, obj)
+        return getattr(self, '_' +  objectName)
 
     def getNumberOfElements(self):
         """
