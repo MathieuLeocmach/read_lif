@@ -223,30 +223,54 @@ class SerieHeader:
         self.root = serieElement
 
     def getName(self):
-        if not hasattr(self, '__name'):
-            self.__name = self.root.getAttribute("Name")
-        return self.__name
+        """
+        Method: Get the Name of the Serie
+        Semi-private attribute `_name`
+        """
+        if not hasattr(self, '_name'):
+            self._name = self.root.getAttribute("Name")
+        return self._name
 
     def isPreview(self):
-        if not hasattr(self, '__isPreview'):
-            self.__isPreview = 0
+        if not hasattr(self, '_isPreview'):
+            self._isPreview = 0
             for c in self.root.getElementsByTagName("Attachment"):
                 if c.getAttribute("Name") == "PreviewMarker":
-                    self.__isPreview = bool(c.getAttribute("isPreviewImage"))
+                    self._isPreview = bool(c.getAttribute("isPreviewImage"))
                     break
-
-        return self.__isPreview
+        return self._isPreview
 
     def getChannels(self):
-        if not hasattr(self, '__channels'):
-            self.__channels = self.root.getElementsByTagName("ChannelDescription")
-        return self.__channels
+        """
+        Method: Extract the DOM elements describing the used channels.
+        Semi-private attribute `_channels`
+        
+        Return: List of DOM elements
+        
+        Use: To recover information contained in `chosen_serie.getChannels()`, iterate over the elements and apply `.getAttribute('Keyword')` method
+        
+        Keywords: Refer to xml file for a list of relevant Keywords. Examples: DataType, ChannelTag, Resolution, NameOfMeasuredQuantity, Min, Max, Unit, 
+                  LUTName, IsLUTInverted, BytesInc, BitInc
+        """
+        if not hasattr(self, '_channels'):
+            self._channels = self.root.getElementsByTagName("ChannelDescription")
+        return self._channels
 
     def getDimensions(self):
-        if not hasattr(self, '__dimensions'):
-            self.__dimensions = self.root.getElementsByTagName(
+        """
+        Method: Extract the DOM elements describing the used channels.
+        Semi-private attribute `_dimensions`
+                
+        Return: List of DOM elements
+        
+        Use: To recover information contained in `chosen_serie.getDimensionss()`, iterate over the elements and apply `.getAttribute('Keyword') method
+        
+        Keywords: Refer to xml file for a list of relevant Keywords. Examples: DimID, NumberOfElements, Origin, Length, Unit, BitInc, BytesInc
+        """
+        if not hasattr(self, '_dimensions'):
+            self._dimensions = self.root.getElementsByTagName(
                 "DimensionDescription")
-        return self.__dimensions
+        return self._dimensions
 
     def hasZ(self):
         for d in self.getDimensions():
@@ -255,35 +279,66 @@ class SerieHeader:
         return False
 
     def getMemorySize(self):
-        if not hasattr(self, '__memorySize'):
+        """
+        Method: Get the Memory size of the current Serie
+        Semi-private attribute `_memorySize`
+        
+        Return: Memory size as int
+        """
+        if not hasattr(self, '_memorySize'):
             for m in self.root.getElementsByTagName("Memory"):
                 # to ensure the Memory node is the child of root
                 if m.parentNode is self.root:
-                    self.__memorySize = int(m.getAttribute("Size"))
-        return self.__memorySize
+                    self._memorySize = int(m.getAttribute("Size"))
+        return self._memorySize
 
     def getResolution(self, channel):
-        if not hasattr(self, '__resolusion'):
-            self.__resolusion = int(
+        """
+        Method: Get the BitDepth Resolution of a given Channel using .getChannels() method
+        Semi-private attribute `_resolution`
+
+        arg:: channel number (int)
+        
+        Return: Bit Depth resolution as int
+        """
+        if not hasattr(self, '_resolution'):
+            self._resolution = int(
                 self.getChannels()[channel].getAttribute("Resolution")
             )
-        return self.__resolusion
+        return self._resolution
 
     def getScannerSetting(self, identifier):
-        if not hasattr(self, '__' + identifier):
+        """
+        Method: Access to the value of one of the Experimental Condition elements under ScannerSettingRecord TagName
+        Semi-private attribute `_"identifier"`
+        
+        arg:: identifier (string) as the name of the Attribute looked for.
+        
+              Refer to xml file for a list of relevant identifier: dblPinhole, dblSizeX, dblSizeY, dblVoxelX, dblVoxelY, dblZoom, 
+              nAccumulation, nAverageFrame, nAverageLine, nChannels, nDelayTime_ms, nLineAccumulation, nRepeatActions, ...
+        
+        return: The value ('Variant') of the required Attribute ('identifier') as a *string* 
+        """
+        if not hasattr(self, '_' + identifier):
             for c in self.root.getElementsByTagName("ScannerSettingRecord"):
                 if c.getAttribute("Identifier") == identifier:
-                    setattr(self, '__' + identifier, c.getAttribute("Variant"))
+                    setattr(self, '_' + identifier, c.getAttribute("Variant"))
                     break
-        return getattr(self, '__' + identifier)
+        return getattr(self, '_' + identifier)
 
     def getNumberOfElements(self):
-        if not hasattr(self, '__numberOfElements'):
-            self.__numberOfElements = [
+        """
+        Method: Use .getDimensions() method to extact the data dimensions along all axis in order X, Y, Z, T, ...
+        Semi-private attribute `_numberOfElements`
+        
+        Result: List of integers
+        """
+        if not hasattr(self, '_numberOfElements'):
+            self._numberOfElements = [
                 int(d.getAttribute("NumberOfElements")) \
                 for d in self.getDimensions()
             ]
-        return self.__numberOfElements
+        return self._numberOfElements
 
     def getVoxelSize(self, dimension):
         return float(self.getScannerSetting("dblVoxel%s" % dimName[dimension]))
@@ -314,13 +369,18 @@ class SerieHeader:
             return 1.0
 
     def getTotalDuration(self):
-        """Get total duration of the experiment"""
-        if not hasattr(self, '__duration'):
-            self.__duration = 0.0
+        """
+        Method: Get total duration of the experiment using the .getDimensions() method
+        Semi-private attribute `_duration`
+        
+        Return: duration (float) in seconds
+        """
+        if not hasattr(self, '_duration'):
+            self._duration = 0.0
             for d in self.getDimensions():
                 if dimName[int(d.getAttribute("DimID"))] == "T":
-                    self.__duration = float(d.getAttribute("Length"))
-        return self.__duration
+                    self._duration = float(d.getAttribute("Length"))
+        return self._duration
 
     def getTimeLapse(self):
         """Get an estimate of the average time lapse between two frames in seconds"""
@@ -361,17 +421,25 @@ class SerieHeader:
         return self.__relTimeStamps
 
     def getBytesInc(self, dimension):
+        """
+        Method: Get the ByteIncrement of a given dimension in the Serie.
+        Semi-private attribute `_"dim"`, with "dim" a string = X, Y, Z, T
+        
+        arg:: dimension either as a string or as its key (integer) in dimName = {1: "X", 2: "Y", 3: "Z", 4: "T", ...}
+        
+        Return: BytesIncr as integer
+        """
         # todo: consider channels
         if isinstance(dimension, int):
             dim = dimName[dimension]
         else:
             dim = dimension
-        if not hasattr(self, '__' + dim):
-            setattr(self, '__' + dim, 0)
+        if not hasattr(self, '_' + dim):
+            setattr(self, '_' + dim, 0)
             for d in self.getDimensions():
                 if dimName[int(d.getAttribute("DimID"))] == dim:
-                    setattr(self, '__' + dim, int(d.getAttribute("BytesInc")))
-        return getattr(self, '__' + dim)
+                    setattr(self, '_' + dim, int(d.getAttribute("BytesInc")))
+        return getattr(self, '_' + dim)
 
     def chooseChannel(self):
         st = "Serie: %s\n" % self.getName()
@@ -391,23 +459,35 @@ class SerieHeader:
         return r
 
     def getNbFrames(self):
-        if not hasattr(self, '__nbFrames'):
-            self.__nbFrames = 1
+        """
+        Method: Get the number of frames in the Serie (acquisition at successive times)
+        Semi-private attribute `_nbFrames`
+        
+        Return: number of frames (integer)
+        """
+        if not hasattr(self, '_nbFrames'):
+            self._nbFrames = 1
             for d in self.getDimensions():
                 if d.getAttribute("DimID") == "4":
-                    self.__nbFrames = int(d.getAttribute("NumberOfElements"))
-        return self.__nbFrames
+                    self._nbFrames = int(d.getAttribute("NumberOfElements"))
+        return self._nbFrames
 
     def getBoxShape(self):
-        """Shape of the field of view in the X,Y,Z order."""
-        if not hasattr(self, '__boxShape'):
+        """
+        Method: Get the Shape (spatial) of a frame 
+        Semi-private attribute: _boxShape
+        
+        Return: a list integers [length axis 1, length axis 2, ... ] ordered according to axis number (X, Y, Z)
+        
+        """
+        if not hasattr(self, '_boxShape'):
             dims = {
                 int(d.getAttribute('DimID')): int(d.getAttribute("NumberOfElements"))
                 for d in self.getDimensions()
             }
-            # ensure dimensions are sorted, keep only spatial dimensions
-            self.__boxShape = [s for d, s in sorted(dims.items()) if d < 4]
-        return self.__boxShape
+            # ensure dimensions are sorted (unlike dictionnaries...), keep only spatial dimensions
+            self._boxShape = [s for d, s in sorted(dims.items()) if d < 4]
+        return self._boxShape
 
     def getFrameShape(self):
         """Shape of the frame (nD image) in C order, that is Z,Y,X"""
@@ -418,14 +498,26 @@ class SerieHeader:
         return self.getBoxShape()[:2][::-1]
 
     def getNbPixelsPerFrame(self):
-        if not hasattr(self, '__nbPixelsPerFrame'):
-            self.__nbPixelsPerFrame = np.prod(self.getBoxShape())
-        return self.__nbPixelsPerFrame
+        """
+        Method: Get the total number of pixels in a frame of shape .getBoxShape()
+        Semi-private attribute: _nbPixelsPerFrame
+        
+        Return: total number of pixels (integer) 
+        """
+        if not hasattr(self, '_nbPixelsPerFrame'):
+            self._nbPixelsPerFrame = np.prod(self.getBoxShape())
+        return self._nbPixelsPerFrame
 
     def getNbPixelsPerSlice(self):
-        if not hasattr(self, '__nbPixelsPerSlice'):
-            self.__nbPixelsPerSlice = np.prod(self.get2DShape())
-        return self.__nbPixelsPerSlice
+        """
+        Method: Get the total number of pixels in a Slice of shape .get2DShape()
+        Semi-private attribute: _nbPixelsPerSlice
+        
+        Return: total number of pixels (integer) 
+        """
+        if not hasattr(self, '_nbPixelsPerSlice'):
+            self._nbPixelsPerSlice = np.prod(self.get2DShape())
+        return self._nbPixelsPerSlice
 
 
 def get_xml(lif_name):
