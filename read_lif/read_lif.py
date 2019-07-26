@@ -5,6 +5,37 @@
 #  with different python version and confocal machines
 #  Since its' original version use GPL License, it's restricted GPL as well
 
+
+#    Modification June 2019 by M. Leocmach /C. Ybert:
+#
+#        0- Note about good practices: semi-private attributes should only be accessed from a method getXXX(). Semi-privacy is chosen here to emphasize 
+#           that values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
+#
+#        1- Limit read_lif to its main purpose (remove analysis functions getNeighbourhood() and getRadius, and associated library import)
+#        2- Add a getFilterSetting method to SerieHeader Class
+#        3- Modify Header.parse method (remove initial storage of all timestamps)
+#        5- Expand (a bit) the function description
+#        6- Move all double underscore attributes to simple underscore (semi-private ones) and corrected uneffective hasattr() tests
+#        7- Remove get2DImage() methods
+#        8- Add a getFrame2D() method to extract a 2D image. As for getFrame() it lacks proper conditional testing to accomodate (or report error)
+#           depending on the type of data (XYT, XYZT, ...). It is based on the inner loop in getFrame so that it might be possible to
+#           rewrite getFrame() using getFrame2D().
+#
+#
+#        BUGS: - getMetadata() doesn't support XY frames (no z)
+#              - getFrame() doesn't support XY frames (no z)
+#              - get2DStrings() doesn't support XY frames (no z)
+#              - enumByFrame() and enumBySlice() lacks some conditional testing against the data frame type
+#
+#
+#        ToDo: - Correct Bugs
+#              - Convert TimeStamps into seconds
+#              - getZXratio it would be more consistent to use getDimensions() to obtain the information
+#              - Automatic type conversion of SeriesHeader data (in ScannerSetting and FilterSetting) using the VariantType data from VisualBasic
+#                {0: Empty, 1: Null, 2: Short, 3: integer, 4: single, 5: double, 6: currency, 7: date, 8: string, 9: object, 10: error
+#                 11: boolean, 12: variant, 13: dataObject, 14: decimal, 17: byte, 18: char, 20: long, 36: UserDefined, 8192: array}
+
+
 # ============== origional information ====================
 #
 #    Copyright 2009 Mathieu Leocmach
