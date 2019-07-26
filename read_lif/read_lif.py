@@ -674,7 +674,11 @@ class Reader(Header):
 
 
 class Serie(SerieHeader):
-    """One on the datasets in a lif file"""
+    """
+    One of the datasets (Serie) in a .lif file
+    
+    Methods: 
+    """
 
     def __init__(self, serieElement, f, offset):
         self.f = f
@@ -682,6 +686,11 @@ class Serie(SerieHeader):
         self.root = serieElement
 
     def getOffset(self, **dimensionsIncrements):
+        """
+        Method: Get the Frame Offset
+        
+        kwargs:: Time, Channel or data type. Default to `channel=0, T=0, dtype=np.uint8`
+        """
         of = 0
         for d, b in dimensionsIncrements.items():
             of += self.getBytesInc(d) * b
@@ -690,13 +699,24 @@ class Serie(SerieHeader):
         return self.__offset + of
 
     def getChannelOffset(self, channel):
+        """
+        Method: Get the Channel Offset
+        
+        arg:: channel (int)
+        """
         channels = self.getChannels()
         channel_node = channels[channel]
         of = int(channel_node.getAttribute('BytesInc'))
         return of
 
     def get2DSlice(self, **dimensionsIncrements):
-        """Use the two first dimensions as image dimension. Axis are in C order (last index is X)."""
+        """
+        Method: Use the two first dimensions as image dimension (XY, XZ, YZ). Axis are in C order (last index is X).
+        
+        Return: Image as numpy array with the axis in ZY, ZX, or YX order
+        
+        warning:: See dtype argument; might not support 16bits encoding
+        """
         for d in self.getDimensions()[:2]:
             if dimName[int(d.getAttribute("DimID"))] in dimensionsIncrements:
                 raise Exception('You can\'t set %s in serie %s' % (
@@ -713,7 +733,9 @@ class Serie(SerieHeader):
         ).reshape(shape)
 
     def get2DString(self, **dimensionsIncrements):
-        """Use the two first dimensions as image dimension"""
+        """
+        Use the two first dimensions as image dimension
+        """
         for d in self.getDimensions()[:2]:
             if dimName[int(d.getAttribute("DimID"))] in dimensionsIncrements:
                 raise Exception('You can\'t set %s in serie %s' % (
