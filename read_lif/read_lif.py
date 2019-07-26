@@ -118,9 +118,13 @@ class Header:
         self.xmlHeader = parse(lightXML)
 
     def getVersion(self):
-        if not hasattr(self, '__version'):
-            self.__version = self.xmlHeader.documentElement.getAttribute("Version")
-        return int(self.__version)
+        """
+        Method: Get the version of the Data Container Header
+        Semi-private attribute `_version`
+        """
+        if not hasattr(self, '_version'):
+            self._version = self.xmlHeader.documentElement.getAttribute("Version")
+        return int(self._version)
 
     def getName(self):
         if not hasattr(self, '__name'):
