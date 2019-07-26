@@ -745,28 +745,7 @@ class Serie(SerieHeader):
         self.f.seek(self.getOffset(**dimensionsIncrements))
         return self.f.read(self.getNbPixelsPerSlice())
 
-    def get2DImage(self, **dimensionsIncrements):
-        """Use the two first dimensions as image dimension"""
-        try:
-            import Image
-        except:
-            try:
-                if sys.version[0] == '2':
-                    import PIL as Image
-                elif sys.version[0] == '3':
-                    from PIL import Image
-                else:
-                    print('Wrong Python Version')
-                    return None
-            except:
-                print("Impossible to find image library")
-                return None
-        size = self.getNumberOfElements()[:2]
-        return Image.fromstring(
-            "L",
-            tuple(size)
-            , self.get2DString(**dimensionsIncrements)
-        )
+
 
     def getFrame(self, channel=0, T=0, dtype=np.uint8):
         """
@@ -791,6 +770,30 @@ class Serie(SerieHeader):
         xyzc = np.moveaxis(xzcy, -1, 1)
         return xyzc[:, :, :, channel]
 
+    
+    
+    
+    def getFrame2D(self, channel=0, T=0, dtype=np.uint8):
+        """
+        Method: Get a 2D image from the serie XY (for XY, XYT) or XZ (for XZ, XZT)
+        
+        kwarg:: channel number (int, default = 0), Time index (int, default = 0)
+        
+        Return: a 2D numpy array (in C order: last index is X). (ok if no T dependence)
+                Leica use uint8 by default, but after deconvolution the datatype is np.uint16
+        """
+        channels = self.getChannels()
+        cyx = []
+        for i in range(len(channels)):
+            self.f.seek(self.getOffset(**dict({'T': T})) + self.getChannelOffset(i))
+            yx = np.fromfile(self.f, dtype=dtype, count=int(self.getNbPixelsPerSlice()))
+            yx = yx.reshape(self.get2DShape())
+            cyx.append(yx)
+        cyx = np.array(cyx)
+        return cyx[channel]
+
+    
+    
     def getMetadata(self):
         """
         voxel size unit: µm
