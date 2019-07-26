@@ -160,6 +160,13 @@ class Header:
         return self._seriesHeaders
 
     def chooseSerieIndex(self):
+        """
+        Method: Interactive selection of the desired serie.
+        
+        Print a list of all Series specifying: index, Name, Channel number and Tag, and stack dimensions X, Y, Z, T,...
+        Promt for selecting a Serie number.
+        
+        """
         st = "Experiment: %s\n" % self.getName()
         for i, s in enumerate(self.getSeriesHeaders()):
             # s = Serie(serie)
@@ -189,6 +196,14 @@ class Header:
         return r
 
     def chooseSerieHeader(self):
+        """
+        Method: Interactive selection of the desired serie header.
+        
+        Print a list of all Series specifying: index, Name, Channel number and Tag, and stack dimensions X, Y, Z, T,...
+        Promt for selecting a Serie number.
+        
+        """
+
         return self.getSeriesHeaders()[self.chooseSerieIndex()]
 
     def __iter__(self):
