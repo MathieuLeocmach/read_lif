@@ -65,8 +65,12 @@ class Header:
 
     def parse(self, xmlHeaderFile, quick=True):
         """
-        Parse the usefull part of the xml header,
-        stripping time stamps and non ascii characters
+        Method: Parse the usefull part of the xml header. Non ascii characters are stripped
+        Args:
+            
+            quick (Boolean). If True Time Stamps are also stripped from the xmlHeader
+            
+        .. warnings:: `quick == True` forbids future access to TimeStamps unless re-opening of original .lif file
         """
 
         # to strip the non ascii characters
@@ -81,18 +85,6 @@ class Header:
             lightXML = StringIO.StringIO()
 
         if not quick:
-            # store all time stamps in a big array
-            timestamps = np.fromregex(
-                xmlHeaderFile,
-                r'<TimeStamp HighInteger="(\d+)" LowInteger="(\d+)"/>',
-                float
-            )
-            xmlHeaderFile.seek(0)
-            relTimestamps = np.fromregex(
-                xmlHeaderFile,
-                r'<RelTimeStamp Time="(\f+)" Frame="(\d+)"/>|<RelTimeStamp Frame="[0-9]*" Time="[0-9.]*"/>',
-                float
-            )
             xmlHeaderFile.seek(0)
             if sys.version_info > (3, 0):
                 for line in xmlHeaderFile:
@@ -217,7 +209,15 @@ class Header:
 
 
 class SerieHeader:
-    """The part of the XML header of a Leica LIF files concerning a given serie"""
+    """
+    The part of the XML header of a Leica LIF files concerning a given serie
+    
+    Attributes:: are all semi-private (should only be accessed from a method getXXX()) 
+                 as values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
+                 _name, _isPreview, _channels, _dimensions, _memorySize, _resolution, _numberOfElements, _duration,
+                 _timeStamps, _relTimeStamps, _nbFrames, _boxShape, _nbPixelsPerFrame, _nbPixelsPerSlice, etc.
+    
+    """
 
     def __init__(self, serieElement):
         self.root = serieElement
@@ -438,35 +438,49 @@ class SerieHeader:
             return self.getTotalDuration() / (self.getNbFrames() - 1)
 
     def getTimeStamps(self):
-        """if the timestamps are not empty, convert them into a more lightweight numpy array"""
-        if not hasattr(self, '__timeStamps'):
+        """
+        Method: Get a numpy array of all image timeStamps in the Serie.
+        Semi-private attribute `_timeStamps`
+        
+        Return: Numpy array of integers with timeStamps of all successives images in the Serie
+        
+        warning:: on first call getTimeStamps() suppresses the data from the XML SerieHeader
+        """
+        if not hasattr(self, '_timeStamps'):
             tslist = self.root.getElementsByTagName("TimeStampList")[0]
             if tslist.hasAttribute("NumberOfTimeStamps") and int(tslist.getAttribute("NumberOfTimeStamps")) > 0:
                 # SP8 way of storing time stamps in the text of the node as 16bits hexadecimal separated by spaces
-                self.__timeStamps = np.array([
+                self._timeStamps = np.array([
                     int(h, 16)
                     for h in tslist.firstChild.nodeValue.split()
                 ])
             else:
                 # SP5 way of storing time stamps as very verbose XML
-                self.__timeStamps = np.asarray([
+                self._timeStamps = np.asarray([
                     (int(c.getAttribute("HighInteger")) << 32) + int(c.getAttribute("LowInteger"))
-                    for c in self.root.getElementsByTagName("TimeStamp")])
+                    for c in tslist.getElementsByTagName("TimeStamp")])
                 # remove the data from XML
-                for c in self.root.getElementsByTagName("TimeStamp"):
+                for c in tslist.getElementsByTagName("TimeStamp"):
                     c.parentNode.removeChild(c).unlink()
-        return self.__timeStamps
+        return self._timeStamps
 
     def getRelativeTimeStamps(self):
-        """if the timestamps are not empty, convert them into a more lightweight numpy array"""
-        if not hasattr(self, '__relTimeStamps'):
-            self.__relTimeStamps = np.asarray([
+        """
+        Method: Get a numpy array of all image relativetimeStamps in the Serie.
+        Semi-private attribute `_relTimeStamps`
+        
+        Return: Numpy array of integers with relativetimeStamps of all successives images in the Serie
+        
+        warning:: on first call getRelativeTimeStamps() suppresses the data from the XML SerieHeader
+        """
+        if not hasattr(self, '_relTimeStamps'):
+            self._relTimeStamps = np.asarray([
                 float(c.getAttribute("Time"))
                 for c in self.root.getElementsByTagName("RelTimeStamp")])
             # remove the data from XML
             for c in self.root.getElementsByTagName("RelTimeStamp"):
                 c.parentNode.removeChild(c).unlink()
-        return self.__relTimeStamps
+        return self._relTimeStamps
 
     def getBytesInc(self, dimension):
         """
