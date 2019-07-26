@@ -127,10 +127,14 @@ class Header:
         return int(self._version)
 
     def getName(self):
-        if not hasattr(self, '__name'):
-            self.__name = self.xmlHeader.documentElement. \
+        """
+        Method: Get the name of current lif file (without extension .lif)
+        Semi-private attribute `_name`
+        """
+        if not hasattr(self, '_name'):
+            self._name = self.xmlHeader.documentElement. \
                 getElementsByTagName('Element')[0].getAttribute("Name")
-        return self.__name
+        return self._name
 
     def getSeriesHeaders(self):
         if not hasattr(self, '__seriesHeaders'):
