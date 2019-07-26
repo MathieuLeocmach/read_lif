@@ -137,7 +137,12 @@ class Header:
         return self._name
 
     def getSeriesHeaders(self):
-        if not hasattr(self, '__seriesHeaders'):
+        """
+        Method: Get the Series Headers of all series contained in the .lif file
+        Semi-private attribute `_seriesHeaders`
+        """
+
+        if not hasattr(self, '_seriesHeaders'):
             root = self.xmlHeader.documentElement
             headers = []
             counter = 0
@@ -151,8 +156,8 @@ class Header:
                     if size:
                         if int(size) > 0:
                             headers.append(SerieHeader(element))
-            self.__seriesHeaders = headers
-        return self.__seriesHeaders
+            self._seriesHeaders = headers
+        return self._seriesHeaders
 
     def chooseSerieIndex(self):
         st = "Experiment: %s\n" % self.getName()
