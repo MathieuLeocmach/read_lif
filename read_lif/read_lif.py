@@ -47,7 +47,13 @@ channelTag = ["Gray", "Red", "Green", "Blue"]
 
 
 class Header:
-    """The XML header of a Leica LIF files"""
+    """
+    The XML header of a Leica LIF files
+    
+    Attributes:: are all semi-private (should only be accessed from a method getXXX()) 
+                 as values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
+                 _version, _name, _seriesHeaders, 
+    """
 
     def __init__(self, xmlHeaderFileName, quick=True):
         if sys.version_info > (3, 0):
