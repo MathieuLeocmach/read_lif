@@ -947,7 +947,11 @@ class Serie(SerieHeader):
             f.write(self.f.read(self.getNbPixelsPerFrame()))
 
     def enumByFrame(self):
-        """yield time steps one after the other as a couple (time,numpy array). It is not safe to combine this syntax with getFrame or get2DSlice."""
+        """yield time steps one after the other as a couple (time,numpy array).
+        It is not safe to combine this syntax with getFrame or get2DSlice.
+
+        This implementation works only for single channel, 8 bytes series.
+        """
         self.f.seek(self.getOffset())
         for t in range(self.getNbFrames()):
             yield t, np.fromfile(
@@ -957,7 +961,11 @@ class Serie(SerieHeader):
             ).reshape(self.getFrameShape())
 
     def enumBySlice(self):
-        """yield 2D slices one after the other as a 3-tuple (time,z,numpy array). It is not safe to combine this syntax with getFrame or get2DSlice."""
+        """yield 2D slices one after the other as a 3-tuple (time,z,numpy array).
+        It is not safe to combine this syntax with getFrame or get2DSlice.
+
+        This implementation works only for single channel, 8 bytes series.
+        """
         self.f.seek(self.getOffset())
         for t in range(self.getNbFrames()):
             for z in range(self.getNbPixelsPerFrame() / self.getNbPixelsPerSlice()):
