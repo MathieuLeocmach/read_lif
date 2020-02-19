@@ -8,7 +8,7 @@
 
 #    Modification June 2019 by M. Leocmach /C. Ybert:
 #
-#        0- Note about good practices: semi-private attributes should only be accessed from a method getXXX(). Semi-privacy is chosen here to emphasize 
+#        0- Note about good practices: semi-private attributes should only be accessed from a method getXXX(). Semi-privacy is chosen here to emphasize
 #           that values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
 #
 #        1- Limit read_lif to its main purpose (remove analysis functions getNeighbourhood() and getRadius, and associated library import)
@@ -78,10 +78,10 @@ channelTag = ["Gray", "Red", "Green", "Blue"]
 class Header:
     """
     The XML header of a Leica LIF files
-    
-    Attributes:: are all semi-private (should only be accessed from a method getXXX()) 
+
+    Attributes:: are all semi-private (should only be accessed from a method getXXX())
                  as values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
-                 _version, _name, _seriesHeaders, 
+                 _version, _name, _seriesHeaders,
     """
 
     def __init__(self, xmlHeaderFileName, quick=True):
@@ -96,9 +96,9 @@ class Header:
         """
         Method: Parse the usefull part of the xml header. Non ascii characters are stripped
         Args:
-            
+
             quick (Boolean). If True Time Stamps are also stripped from the xmlHeader
-            
+
         .. warnings:: `quick == True` forbids future access to TimeStamps unless re-opening of original .lif file
         """
 
@@ -189,10 +189,10 @@ class Header:
     def chooseSerieIndex(self):
         """
         Method: Interactive selection of the desired serie.
-        
+
         Print a list of all Series specifying: index, Name, Channel number and Tag, and stack dimensions X, Y, Z, T,...
         Promt for selecting a Serie number.
-        
+
         """
         st = "Experiment: %s\n" % self.getName()
         for i, s in enumerate(self.getSeriesHeaders()):
@@ -225,10 +225,10 @@ class Header:
     def chooseSerieHeader(self):
         """
         Method: Interactive selection of the desired serie header.
-        
+
         Print a list of all Series specifying: index, Name, Channel number and Tag, and stack dimensions X, Y, Z, T,...
         Promt for selecting a Serie number.
-        
+
         """
 
         return self.getSeriesHeaders()[self.chooseSerieIndex()]
@@ -240,12 +240,12 @@ class Header:
 class SerieHeader:
     """
     The part of the XML header of a Leica LIF files concerning a given serie
-    
-    Attributes:: are all semi-private (should only be accessed from a method getXXX()) 
+
+    Attributes:: are all semi-private (should only be accessed from a method getXXX())
                  as values are not supposed to be changed (they correspond to the *fixed* experimental conditions)
                  _name, _isPreview, _channels, _dimensions, _memorySize, _resolution, _numberOfElements, _duration,
                  _timeStamps, _relTimeStamps, _nbFrames, _boxShape, _nbPixelsPerFrame, _nbPixelsPerSlice, etc.
-    
+
     """
 
     def __init__(self, serieElement):
@@ -273,12 +273,12 @@ class SerieHeader:
         """
         Method: Extract the DOM elements describing the used channels.
         Semi-private attribute `_channels`
-        
+
         Return: List of DOM elements
-        
+
         Use: To recover information contained in `chosen_serie.getChannels()`, iterate over the elements and apply `.getAttribute('Keyword')` method
-        
-        Keywords: Refer to xml file for a list of relevant Keywords. Examples: DataType, ChannelTag, Resolution, NameOfMeasuredQuantity, Min, Max, Unit, 
+
+        Keywords: Refer to xml file for a list of relevant Keywords. Examples: DataType, ChannelTag, Resolution, NameOfMeasuredQuantity, Min, Max, Unit,
                   LUTName, IsLUTInverted, BytesInc, BitInc
         """
         if not hasattr(self, '_channels'):
@@ -289,11 +289,11 @@ class SerieHeader:
         """
         Method: Extract the DOM elements describing the used channels.
         Semi-private attribute `_dimensions`
-                
+
         Return: List of DOM elements
-        
+
         Use: To recover information contained in `chosen_serie.getDimensionss()`, iterate over the elements and apply `.getAttribute('Keyword') method
-        
+
         Keywords: Refer to xml file for a list of relevant Keywords. Examples: DimID, NumberOfElements, Origin, Length, Unit, BitInc, BytesInc
         """
         if not hasattr(self, '_dimensions'):
@@ -304,7 +304,7 @@ class SerieHeader:
     def hasZ(self):
         """
         Method: Check if current serie includes Z stacking
-        
+
         Return: Boolean value
         """
         for d in self.getDimensions():
@@ -316,7 +316,7 @@ class SerieHeader:
         """
         Method: Get the Memory size of the current Serie
         Semi-private attribute `_memorySize`
-        
+
         Return: Memory size as int
         """
         if not hasattr(self, '_memorySize'):
@@ -332,7 +332,7 @@ class SerieHeader:
         Semi-private attribute `_resolution`
 
         arg:: channel number (int)
-        
+
         Return: Bit Depth resolution as int
         """
         if not hasattr(self, '_resolution'):
@@ -345,13 +345,13 @@ class SerieHeader:
         """
         Method: Access to the value of one of the Experimental Condition elements under ScannerSettingRecord TagName
         Semi-private attribute `_"identifier"`
-        
+
         arg:: identifier (string) as the name of the Attribute looked for.
-        
-              Refer to xml file for a list of relevant identifier: dblPinhole, dblSizeX, dblSizeY, dblVoxelX, dblVoxelY, dblZoom, 
+
+              Refer to xml file for a list of relevant identifier: dblPinhole, dblSizeX, dblSizeY, dblVoxelX, dblVoxelY, dblZoom,
               nAccumulation, nAverageFrame, nAverageLine, nChannels, nDelayTime_ms, nLineAccumulation, nRepeatActions, ...
-        
-        return: The value ('Variant') of the required Attribute ('identifier') as a *string* 
+
+        return: The value ('Variant') of the required Attribute ('identifier') as a *string*
         """
         if not hasattr(self, '_' + identifier):
             for c in self.root.getElementsByTagName("ScannerSettingRecord"):
@@ -359,18 +359,18 @@ class SerieHeader:
                     setattr(self, '_' + identifier, c.getAttribute("Variant"))
                     break
         return getattr(self, '_' + identifier)
-    
+
     def getFilterSetting(self, objectName):
         """
         Method: Access to the value of one of the Experimental Condition elements under `FilterSettingRecord TagName`
         Semi-private attribute `_"objectName"`
-        
+
         arg:: objectName (string) as the name of the Object looked for.
-        
+
               Refer to xml file for a list of relevant objectName: e.g. 'Scan Head' yields information about scanner
-        
-        return: Unlike identifier in getScannerSetting, a single objectname has multiple occurences, 
-                hence getFilterSetting returns a dictionnary of all {Attributes: Variant}, with values 'Variant' being strings 
+
+        return: Unlike identifier in getScannerSetting, a single objectname has multiple occurences,
+                hence getFilterSetting returns a dictionnary of all {Attributes: Variant}, with values 'Variant' being strings
         """
         if not hasattr(self, '_' + objectName):
             obj = dict()
@@ -384,7 +384,7 @@ class SerieHeader:
         """
         Method: Use .getDimensions() method to extact the data dimensions along all axis in order X, Y, Z, T, ...
         Semi-private attribute `_numberOfElements`
-        
+
         Result: List of integers
         """
         if not hasattr(self, '_numberOfElements'):
@@ -397,9 +397,9 @@ class SerieHeader:
     def getVoxelSize(self, dimension):
         """
         Method: Use getScannerSetting() to return the resolution
-        
+
         arg:: dimension is an integer according to the dimName dictionnary {1: X, 2: Y, 3: Z}
-        
+
         Return: Voxel size of specified axis (float)
 
         """
@@ -410,9 +410,9 @@ class SerieHeader:
         Method: Calculate for the current Serie the ratio between Vertical (Z) and Horizontal (X) image resolutions. Looks for the information either in
                     - 'ScannerSettingRecord' (resolution)
                     - or in 'DimensionDescription' (total size / pixel number)
-        
+
         Return: Z/X resolution ratio (float). Return 1.0 if the current Serie has no Z-stack.
-               
+
         """
         setting_records = self.root.getElementsByTagName('ScannerSettingRecord')
         dimension_descriptions = self.root.getElementsByTagName('DimensionDescription')
@@ -442,7 +442,7 @@ class SerieHeader:
         """
         Method: Get total duration of the experiment using the .getDimensions() method
         Semi-private attribute `_duration`
-        
+
         Return: duration (float) in seconds
         """
         if not hasattr(self, '_duration'):
@@ -457,9 +457,9 @@ class SerieHeader:
         Method: Get an estimate of the average time lapse between two frames in seconds
 
         Return: estimated Lag time in seconds (float)
-        
+
         warning:: Note that this value is accessible directly via getScannerSetting('nDelayTime_ms')
-           
+
         """
         if self.getNbFrames() == 1:
             return 0
@@ -470,9 +470,9 @@ class SerieHeader:
         """
         Method: Get a numpy array of all image timeStamps in the Serie.
         Semi-private attribute `_timeStamps`
-        
+
         Return: Numpy array of integers with timeStamps of all successives images in the Serie
-        
+
         warning:: on first call getTimeStamps() suppresses the data from the XML SerieHeader
         """
         if not hasattr(self, '_timeStamps'):
@@ -497,9 +497,9 @@ class SerieHeader:
         """
         Method: Get a numpy array of all image relativetimeStamps in the Serie.
         Semi-private attribute `_relTimeStamps`
-        
+
         Return: Numpy array of integers with relativetimeStamps of all successives images in the Serie
-        
+
         warning:: on first call getRelativeTimeStamps() suppresses the data from the XML SerieHeader
         """
         if not hasattr(self, '_relTimeStamps'):
@@ -515,9 +515,9 @@ class SerieHeader:
         """
         Method: Get the ByteIncrement of a given dimension in the Serie.
         Semi-private attribute `_"dim"`, with "dim" a string = X, Y, Z, T
-        
+
         arg:: dimension either as a string or as its key (integer) in dimName = {1: "X", 2: "Y", 3: "Z", 4: "T", ...}
-        
+
         Return: BytesIncr as integer
         """
         # todo: consider channels
@@ -535,10 +535,10 @@ class SerieHeader:
     def chooseChannel(self):
         """
         Method: Interactive selection of the channel for the current serie.
-        
+
         Print the Serie name `chosen_serie.getName() and a list of all channels specifying: index, Color
         Promt for selecting a channel index.
-        
+
         """
         st = "Serie: %s\n" % self.getName()
         for i, c in enumerate(self.getChannels()):
@@ -560,7 +560,7 @@ class SerieHeader:
         """
         Method: Get the number of frames in the Serie (acquisition at successive times)
         Semi-private attribute `_nbFrames`
-        
+
         Return: number of frames (integer)
         """
         if not hasattr(self, '_nbFrames'):
@@ -572,11 +572,11 @@ class SerieHeader:
 
     def getBoxShape(self):
         """
-        Method: Get the Shape (spatial) of a frame 
+        Method: Get the Shape (spatial) of a frame
         Semi-private attribute: _boxShape
-        
+
         Return: a list integers [length axis 1, length axis 2, ... ] ordered according to axis number (X, Y, Z)
-        
+
         """
         if not hasattr(self, '_boxShape'):
             dims = {
@@ -589,8 +589,8 @@ class SerieHeader:
 
     def getFrameShape(self):
         """
-        Method: Get the Shape of the frame (nD image) in C order, that is Z,Y,X 
-        
+        Method: Get the Shape of the frame (nD image) in C order, that is Z,Y,X
+
         Return: list of integers of axis length in Z, Y, X order (reverse as in .getBoxShape())
         """
         return self.getBoxShape()[::-1]
@@ -598,7 +598,7 @@ class SerieHeader:
     def get2DShape(self):
         """
         Method: Get the Shape of an image using the two first spatial dimensions, in C order, e.g. Y,X
-        
+
         Return: list of integers of axis length
         """
         return self.getBoxShape()[:2][::-1]
@@ -607,8 +607,8 @@ class SerieHeader:
         """
         Method: Get the total number of pixels in a frame of shape .getBoxShape()
         Semi-private attribute: _nbPixelsPerFrame
-        
-        Return: total number of pixels (integer) 
+
+        Return: total number of pixels (integer)
         """
         if not hasattr(self, '_nbPixelsPerFrame'):
             self._nbPixelsPerFrame = np.prod(self.getBoxShape())
@@ -618,8 +618,8 @@ class SerieHeader:
         """
         Method: Get the total number of pixels in a Slice of shape .get2DShape()
         Semi-private attribute: _nbPixelsPerSlice
-        
-        Return: total number of pixels (integer) 
+
+        Return: total number of pixels (integer)
         """
         if not hasattr(self, '_nbPixelsPerSlice'):
             self._nbPixelsPerSlice = np.prod(self.get2DShape())
@@ -629,7 +629,7 @@ class SerieHeader:
 def get_xml(lif_name):
     """
     Function: Extract the XML header from LIF file and save it. Generated .xml file can be opened in a Web Browser
-    
+
     Use to examine the global architecture and the keywords associated with usefull information, to use with getXXX() methods
     """
     with open(lif_name, "rb") as f:
@@ -647,11 +647,11 @@ def get_xml(lif_name):
 class Reader(Header):
     """
     Reads Leica LIF files
-    
+
     Methods: getSeries(), chooseSeries(), __init__(), __iter__(), __readMemoryBlockHeader()
-    
+
     Semi-Private Attribute:: _series
-                 
+
 
     """
 
@@ -715,7 +715,7 @@ class Reader(Header):
         """
         Method: Get the experimental Series from the raw .lif file
         Semi-Private Attribute: _series
-        
+
         Return: a List of class Serie objects
         """
         if not hasattr(self, '_series'):
@@ -727,7 +727,7 @@ class Reader(Header):
     def chooseSerie(self):
         """
         Method: use .chooseSerieIndex() inherited Header method to interactively choose a Serie using .getSeries()
-        
+
         Return: the selected class Serie object
         """
         return self.getSeries()[self.chooseSerieIndex()]
@@ -739,8 +739,8 @@ class Reader(Header):
 class Serie(SerieHeader):
     """
     One of the datasets (Serie) in a .lif file
-    
-    Methods: 
+
+    Methods:
     """
 
     def __init__(self, serieElement, f, offset):
@@ -751,7 +751,7 @@ class Serie(SerieHeader):
     def getOffset(self, **dimensionsIncrements):
         """
         Method: Get the Frame Offset
-        
+
         kwargs:: Time, Channel or data type. Default to `channel=0, T=0, dtype=np.uint8`
         """
         of = 0
@@ -764,7 +764,7 @@ class Serie(SerieHeader):
     def getChannelOffset(self, channel):
         """
         Method: Get the Channel Offset
-        
+
         arg:: channel (int)
         """
         channels = self.getChannels()
@@ -775,9 +775,9 @@ class Serie(SerieHeader):
     def get2DSlice(self, **dimensionsIncrements):
         """
         Method: Use the two first dimensions as image dimension (XY, XZ, YZ). Axis are in C order (last index is X).
-        
+
         Return: Image as numpy array with the axis in ZY, ZX, or YX order
-        
+
         warning:: See dtype argument; might not support 16bits encoding
         """
         for d in self.getDimensions()[:2]:
@@ -833,15 +833,15 @@ class Serie(SerieHeader):
         xyzc = np.moveaxis(xzcy, -1, 1)
         return xyzc[:, :, :, channel]
 
-    
-    
-    
+
+
+
     def getFrame2D(self, channel=0, T=0, dtype=np.uint8):
         """
         Method: Get a 2D image from the serie XY (for XY, XYT) or XZ (for XZ, XZT)
-        
+
         kwarg:: channel number (int, default = 0), Time index (int, default = 0)
-        
+
         Return: a 2D numpy array (in C order: last index is X). (ok if no T dependence)
                 Leica use uint8 by default, but after deconvolution the datatype is np.uint16
         """
@@ -855,8 +855,8 @@ class Serie(SerieHeader):
         cyx = np.array(cyx)
         return cyx[channel]
 
-    
-    
+
+
     def getMetadata(self):
         """
         voxel size unit: µm
@@ -948,8 +948,8 @@ class Serie(SerieHeader):
 
     def enumByFrame(self):
         """yield time steps one after the other as a couple (time,numpy array). It is not safe to combine this syntax with getFrame or get2DSlice."""
-        yield 0, self.getFrame()
-        for t in range(1, self.getNbFrames()):
+        self.f.seek(self.getOffset())
+        for t in range(self.getNbFrames()):
             yield t, np.fromfile(
                 self.f,
                 dtype=np.ubyte,
