@@ -818,20 +818,12 @@ class Serie(SerieHeader):
          (ok if no T dependence)
         Leica use uint8 by default, but after deconvolution the datatype is np.uint16
         """
-        zcyx = []
+        zyx = np.zeros(self.getFrameShape(), dtype=dtype)
         channels = self.getChannels()
-        for z in range(self.getBoxShape()[-1]):
-            cyx = []
-            for i in range(len(channels)):
-                self.f.seek(self.getOffset(**dict({'T': T, 'Z': z})) + self.getChannelOffset(i))
-                yx = np.fromfile(self.f, dtype=dtype, count=int(self.getNbPixelsPerSlice()))
-                yx = yx.reshape(self.get2DShape())
-                cyx.append(yx)
-            zcyx.append(cyx)
-        zcyx = np.array(zcyx)
-        xzcy = np.moveaxis(zcyx, -1, 0)
-        xyzc = np.moveaxis(xzcy, -1, 1)
-        return xyzc[:, :, :, channel]
+        for z in range(self.getFrameShape()[0]):
+            self.f.seek(self.getOffset(T=T, Z=z) + self.getChannelOffset(channel))
+            zyx[z] = np.fromfile(self.f, dtype=dtype, count=int(self.getNbPixelsPerSlice())).reshape(self.get2DShape())
+        return zyx
 
 
 
