@@ -810,7 +810,7 @@ class Serie(SerieHeader):
 
 
 
-    def getFrame(self, channel=0, T=0, dtype=np.uint8):
+    def getFrame(self, T=0, channel=0, dtype=np.uint8):
         """
         Return a numpy array (C order, thus last index is X):
          2D if XYT or XZT serie,
