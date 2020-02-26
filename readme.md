@@ -17,5 +17,7 @@ import read_lif
 reader = read_lif.Reader('lif_file.lif')
 series = reader.getSeries()
 chosen = series[0]  # choose first image in the lif file
-image = chosen.getFrame(T=0, channel=0)  # image is a numpy array, first time point & first channel
+# get a numpy array corresponding to the 1st time point & 1st channel
+# the shape is (z, y, x)
+image = chosen.getFrame(T=0, channel=0)
 ```
