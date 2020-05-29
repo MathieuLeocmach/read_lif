@@ -6,7 +6,7 @@ The code was originally written by Mathieu Leocmach in package [colloids](https:
 
 ## Install
 
-- The most convenient way would be: `pip install read_lif`
+- The most convenient way would be: `pip install -e .` from the directory where you have cloned or downloaded the code.
 - You can also Include the file `read_lif` in your project directory
 
 ## How to Use It
