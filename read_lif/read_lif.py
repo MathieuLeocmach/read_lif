@@ -818,6 +818,8 @@ class Serie(SerieHeader):
          (ok if no T dependence)
         Leica use uint8 by default, but after deconvolution the datatype is np.uint16
         """
+        if len(self.getFrameShape())<3:
+            return self.getFrame2D(channel=channel, T=T, dtype=dtype)
         zyx = np.zeros(self.getFrameShape(), dtype=dtype)
         channels = self.getChannels()
         for z in range(self.getFrameShape()[0]):
