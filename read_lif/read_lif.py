@@ -976,7 +976,7 @@ class SerieHeaderCollection:
     def __init__(self, series):
         self.series = series
         assert np.abs(np.diff([s.getFrameShape() for s in self.series], axis=0)).max()==0, "All series must have the same frame shape"
-        self._cumNbFrames = np.cumsum([s.getNbFrames for s in self.series])
+        self._cumNbFrames = np.cumsum([s.getNbFrames() for s in self.series])
 
     def getNbFrames(self):
         """Get the total number of frames in the collection"""
@@ -1091,7 +1091,7 @@ class SerieCollection(SerieHeaderCollection):
         """yield time steps one after the other as a couple (time,numpy array).
         It is not safe to combine this syntax with getFrame or get2DSlice.
         """
-        for i, s in enumerate(series):
+        for i, s in enumerate(self.series):
             for t, frame in s.enumByFrame():
                 if i>0:
                     t += self._cumNbFrames[i-1]
@@ -1101,7 +1101,7 @@ class SerieCollection(SerieHeaderCollection):
         """yield 2D slices one after the other as a 3-tuple (time,z,numpy array).
         It is not safe to combine this syntax with getFrame or get2DSlice.
         """
-        for i, s in enumerate(series):
+        for i, s in enumerate(self.series):
             for t,z, frame in s.enumBySlice():
                 if i>0:
                     t += self._cumNbFrames[i-1]
