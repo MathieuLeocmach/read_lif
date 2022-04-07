@@ -1,1 +1,1 @@
-from .read_lif import Reader, get_xml
+from .read_lif import Reader, get_xml, SerieCollection

@@ -968,3 +968,141 @@ class Serie(SerieHeader):
                     dtype=np.ubyte,
                     count=self.getNbPixelsPerSlice()
                 ).reshape(self.get2DShape())
+
+
+class SerieHeaderCollection:
+    """A collection of series headers with the same spatial size and aquisition parameters."""
+
+    def __init__(self, series):
+        self.series = series
+        assert np.abs(np.diff([s.getFrameShape() for s in self.series], axis=0)).max()==0, "All series must have the same frame shape"
+        self._cumNbFrames = np.cumsum([s.getNbFrames for s in self.series])
+
+    def getNbFrames(self):
+        """Get the total number of frames in the collection"""
+        return self._cumNbFrames[-1]
+
+    def time2series(self, T):
+        """Convert a total time index T into a series index and a relative time index within this series."""
+        assert T < self.getNbFrames(), "Time out of bound"
+        s = np.nonzero(T<self._cumNbFrames)[0][0]
+        t = T
+        if s>0:
+            t -= self._cumNbFrames[s-1]
+        return s, t
+
+    def getFrameShape(self):
+        """Get the Shape of the frame (nD image) in C order, that is Z,Y,X"""
+        return self.series[0].getFrameShape()
+
+    def get2DShape(self):
+        """Get the Shape of an image using the two first spatial dimensions, in C order, e.g. Y,X"""
+        return self.series[0].get2DShape()
+
+    def getNbPixelsPerFrame(self):
+        """Get the total number of pixels in a frame"""
+        return self.series[0].getNbPixelsPerFrame()
+
+    def getNbPixelsPerSlice(self):
+        """Get the total number of pixels in a slice"""
+        return self.series[0].getNbPixelsPerSlice()
+
+    def getTimeStamps(self):
+        """Get a numpy array of all image timeStamps in the collection"""
+        nZ = self.getFrameShape()[0]
+        return np.vstack([
+            s.getTimeStamps().reshape((s.getNbFrames(), nZ))
+            for s in self.series
+        ])
+
+    def getRelativeTimeStamps(self):
+        nZ = self.getFrameShape()[0]
+        return np.vstack([
+            s.getRelativeTimeStamps().reshape((s.getNbFrames(), nZ))
+            for s in self.series
+        ])
+
+    def getTotalDuration(self):
+        """Get total duration of the collection in seconds"""
+        return sum(s.getTotalDuration() for s in self.series)
+
+    def getTimeLapse(self):
+        """Get an estimate of the average time lapse between two frames in seconds"""
+        return self.getTotalDuration() / (self.getNbFrames() - 1)
+
+    def hasZ(self):
+        """Check if current collection includes Z stacking"""
+        return self.series[0].hasZ()
+
+    def getVoxelSize(self, dimension):
+        """Return the voxel size in meters in the dimension (an integer according to the dimName dictionnary)"""
+        return self.series[0].getVoxelSize(dimension)
+
+    def getZXratio(self):
+        """Calculate for the first Serie of the collection the ratio between Vertical (Z) and Horizontal (X) image resolutions"""
+        return self.series[0].getZXratio()
+
+
+class SerieCollection(SerieHeaderCollection):
+    """A collection of series with the same spatial size and aquisition parameters."""
+
+    def __init__(self, series):
+        super(SerieCollection, self).__init__(series)
+
+    def get2DSlice(self, **dimensionsIncrements):
+        """Use the two first dimensions as image dimension (XY, XZ, YZ). Axis are in C order (last index is X).
+
+        Return: Image as numpy array with the axis in ZY, ZX, or YX order"""
+        if 'T' in dimensionsIncrements:
+            s, dimensionsIncrements[T] = self.time2series(T)
+        else:
+            s =0
+        self.series[s].get2DSlice(**dimensionsIncrements)
+
+    def get2DString(self, **dimensionsIncrements):
+        """Use the two first dimensions as image dimension (XY, XZ, YZ). Axis are in C order (last index is X).
+
+        Return: Image as numpy array with the axis in ZY, ZX, or YX order"""
+        if 'T' in dimensionsIncrements:
+            s, dimensionsIncrements[T] = self.time2series(T)
+        else:
+            s =0
+        self.series[s].get2DString(**dimensionsIncrements)
+
+    def getFrame(self, T=0, *args, **kwargs):
+        """
+        Return a numpy array (C order, thus last index is X):
+         2D if XYT or XZT serie,
+         3D if XYZ, XYZT or XZYT
+         (ok if no T dependence)
+        Leica use uint8 by default, but after deconvolution the datatype is np.uint16
+        """
+        s,t = self.time2series(T)
+        return self.series[s].getFrame(T=t, *args, **kwargs)
+
+    def getFrame2D(self, T=0, *args, **kwargs):
+        """
+        Get a 2D image from the serie XY (for XY, XYT) or XZ (for XZ, XZT)
+        """
+        s,t = self.time2series(T)
+        return self.series[s].getFrame2D(T=t, *args, **kwargs)
+
+    def enumByFrame(self):
+        """yield time steps one after the other as a couple (time,numpy array).
+        It is not safe to combine this syntax with getFrame or get2DSlice.
+        """
+        for i, s in enumerate(series):
+            for t, frame in s.enumByFrame():
+                if i>0:
+                    t += self._cumNbFrames[i-1]
+                yield t, frame
+
+    def enumBySlice(self):
+        """yield 2D slices one after the other as a 3-tuple (time,z,numpy array).
+        It is not safe to combine this syntax with getFrame or get2DSlice.
+        """
+        for i, s in enumerate(series):
+            for t,z, frame in s.enumBySlice():
+                if i>0:
+                    t += self._cumNbFrames[i-1]
+                yield t, z, frame
