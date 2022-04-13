@@ -531,6 +531,22 @@ class SerieHeader:
                 if dimName[int(d.getAttribute("DimID"))] == dim:
                     setattr(self, '_' + dim, int(d.getAttribute("BytesInc")))
         return getattr(self, '_' + dim)
+    
+    @property
+    def dtype(self):
+        """Get the numpy dtype to use"""
+        if not hasattr(self, '_dtype'):
+            dtypes = {
+                1: np.uint8,
+                2: np.uint16,
+                4: np.uint32,
+                8: np.float64
+            }
+            nbytes = self.getBytesInc('X')
+            if nbytes not in dtypes:
+                raise ValueError(f"Unsupported byte depth: {nbytes}")
+            self._dtype = dtypes[nbytes]
+        return self._dtype
 
     def chooseChannel(self):
         """
@@ -791,7 +807,7 @@ class Serie(SerieHeader):
         shape = self.get2DShape()
         return np.fromfile(
             self.f,
-            dtype=np.ubyte,
+            dtype=self.dtype,
             count=self.getNbPixelsPerSlice()
         ).reshape(shape)
 
@@ -806,11 +822,11 @@ class Serie(SerieHeader):
                     self.getName()))
 
         self.f.seek(self.getOffset(**dimensionsIncrements))
-        return self.f.read(self.getNbPixelsPerSlice())
+        return self.f.read(self.getNbPixelsPerSlice()*self.dtype.itemsize)
 
 
 
-    def getFrame(self, T=0, channel=0, dtype=np.uint8):
+    def getFrame(self, T=0, channel=0, dtype=None):
         """
         Return a numpy array (C order, thus last index is X):
          2D if XYT or XZT serie,
@@ -818,6 +834,8 @@ class Serie(SerieHeader):
          (ok if no T dependence)
         Leica use uint8 by default, but after deconvolution the datatype is np.uint16
         """
+        if dtype is None:
+            dtype = self.dtype
         if len(self.getFrameShape())<3:
             return self.getFrame2D(channel=channel, T=T, dtype=dtype)
         zyx = np.zeros(self.getFrameShape(), dtype=dtype)
@@ -830,7 +848,7 @@ class Serie(SerieHeader):
 
 
 
-    def getFrame2D(self, channel=0, T=0, dtype=np.uint8):
+    def getFrame2D(self, channel=0, T=0, dtype=None):
         """
         Method: Get a 2D image from the serie XY (for XY, XYT) or XZ (for XZ, XZT)
 
@@ -839,6 +857,8 @@ class Serie(SerieHeader):
         Return: a 2D numpy array (in C order: last index is X). (ok if no T dependence)
                 Leica use uint8 by default, but after deconvolution the datatype is np.uint16
         """
+        if dtype is None:
+            dtype = self.dtype
         channels = self.getChannels()
         cyx = []
         for i in range(len(channels)):
@@ -944,13 +964,13 @@ class Serie(SerieHeader):
         """yield time steps one after the other as a couple (time,numpy array).
         It is not safe to combine this syntax with getFrame or get2DSlice.
 
-        This implementation works only for single channel, 8 bytes series.
+        This implementation works only for single channel series.
         """
         self.f.seek(self.getOffset())
         for t in range(self.getNbFrames()):
             yield t, np.fromfile(
                 self.f,
-                dtype=np.ubyte,
+                dtype=self.dtype,
                 count=self.getNbPixelsPerFrame()
             ).reshape(self.getFrameShape())
 
@@ -958,14 +978,14 @@ class Serie(SerieHeader):
         """yield 2D slices one after the other as a 3-tuple (time,z,numpy array).
         It is not safe to combine this syntax with getFrame or get2DSlice.
 
-        This implementation works only for single channel, 8 bytes series.
+        This implementation works only for single channel series.
         """
         self.f.seek(self.getOffset())
         for t in range(self.getNbFrames()):
             for z in range(self.getNbPixelsPerFrame() / self.getNbPixelsPerSlice()):
                 yield t, z, np.fromfile(
                     self.f,
-                    dtype=np.ubyte,
+                    dtype=self.dtype,
                     count=self.getNbPixelsPerSlice()
                 ).reshape(self.get2DShape())
 
