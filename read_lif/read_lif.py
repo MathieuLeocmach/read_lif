@@ -531,7 +531,7 @@ class SerieHeader:
                 if dimName[int(d.getAttribute("DimID"))] == dim:
                     setattr(self, '_' + dim, int(d.getAttribute("BytesInc")))
         return getattr(self, '_' + dim)
-    
+
     @property
     def dtype(self):
         """Get the numpy dtype to use"""
@@ -995,7 +995,7 @@ class SerieHeaderCollection:
 
     def __init__(self, series):
         self.series = series
-        assert np.abs(np.diff([s.getFrameShape() for s in self.series], axis=0)).max()==0, "All series must have the same frame shape"
+        assert len(self.series)==1 or np.abs(np.diff([s.getFrameShape() for s in self.series], axis=0)).max()==0, "All series must have the same frame shape"
         self._cumNbFrames = np.cumsum([s.getNbFrames() for s in self.series])
 
     def getNbFrames(self):
