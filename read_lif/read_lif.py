@@ -1011,6 +1011,12 @@ class SerieHeaderCollection:
             t -= self._cumNbFrames[s-1]
         return s, t
 
+    def absolutetime(self, s, t):
+        """Convert a series index and a relative time index within this series to a total time index T."""
+        if s==0:
+            return t
+        return self._cumNbFrames[s-1]+t
+
     def getFrameShape(self):
         """Get the Shape of the frame (nD image) in C order, that is Z,Y,X"""
         return self.series[0].getFrameShape()
