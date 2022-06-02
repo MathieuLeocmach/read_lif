@@ -1036,10 +1036,11 @@ class SerieHeaderCollection:
     def getTimeStamps(self):
         """Get a numpy array of all image timeStamps in the collection"""
         nZ = self.getFrameShape()[0]
+        ts = [s.getTimeStamps() for s in self.series]
         return np.vstack([
-            s.getTimeStamps().reshape((s.getNbFrames(), nZ))
-            for s in self.series
-        ])
+            t[:(t.shape[0]//nZ)*nZ].reshape((t.shape[0]//nZ, nZ))
+            for t in ts
+            ])
 
     def getRelativeTimeStamps(self):
         nZ = self.getFrameShape()[0]
